@@ -1,5 +1,2 @@
-classes/DatabaseDocuments.php
 classes/DatabaseUsers.php
-classes/DocumentUploader.php
-classes/Document.php
-classes/DatabaseClub.php
+classes/DatabaseEvent.php
