@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             document.getElementById('edit-id').value = btn.dataset.id;
                             document.getElementById('edit-title').value = btn.dataset.title;
                             document.getElementById('edit-description').value = btn.dataset.description;
-                            document.getElementById('edit-event_date').value = btn.dataset.event_date;
+                            document.getElementById('edit-event_date').value = btn.dataset.date;
                             document.getElementById('edit-hours').value = btn.dataset.hours;
                             document.getElementById('edit-category').value = btn.dataset.category;
                             document.getElementById('edit-max_students').value = btn.dataset.max_students;
