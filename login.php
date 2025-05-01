@@ -1,10 +1,10 @@
 <?php
 session_start();
 
-// เพิ่ม error reporting สำหรับ debug (ลบออกใน production)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// // เพิ่ม error reporting สำหรับ debug (ลบออกใน production)
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
 
 // โหลด config
 $config = json_decode(file_get_contents(__DIR__ . '/config.json'), true);
