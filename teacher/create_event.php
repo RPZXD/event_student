@@ -158,9 +158,6 @@ require_once('header.php');
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- QRCode.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('event-modal');
@@ -182,29 +179,16 @@ document.addEventListener('DOMContentLoaded', function() {
     closeBtn.onclick = () => modal.classList.add('hidden');
     if (closeResultBtn) closeResultBtn.onclick = () => modal.classList.add('hidden');
 
-    // เพิ่มฟังก์ชันสำหรับ initialize DataTables
-    function initDataTable() {
-        // ใช้ jQuery เพื่อ initialize datatable
-        if (window.jQuery && $('#event-table').length) {
-            if ($.fn.DataTable.isDataTable('#event-table')) {
-                $('#event-table').DataTable().destroy();
-            }
-            $('#event-table').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json'
-                },
-                order: [[1, 'desc']],
-                responsive: true
-            });
-        }
-    }
-
     // โหลดข้อมูลกิจกรรมจาก controller
     function loadEvents() {
         fetch('../controllers/EventController.php')
             .then(res => res.json())
             .then(data => {
                 const tbody = document.getElementById('event-table-body');
+                // Destroy DataTable ก่อน (ถ้ามี)
+                if ($.fn.dataTable.isDataTable('#event-table')) {
+                    $('#event-table').DataTable().clear().destroy();
+                }
                 tbody.innerHTML = '';
                 const currentUser = <?= json_encode($_SESSION['username']) ?>;
 
@@ -231,13 +215,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             month: 'long',
                             day: 'numeric'
                         });
-                        qrcodeBtn = `<button class="show-qrcode-btn inline-flex items-center gap-1 bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded shadow transition" 
+                        if (ev.teacher_id == currentUser) {
+                            qrcodeBtn = `<button class="show-qrcode-btn inline-flex items-center gap-1 bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded shadow transition" 
                                 data-id="${ev.id}" data-title="${ev.title}">
                                 <span>🔗</span><span>QR Code</span>
                             </button>`;
-                            
-                        if (ev.teacher_id == currentUser) {
-
                             editBtn = `<button class="edit-event-btn inline-flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded shadow transition"
                                 data-id="${ev.id}" 
                                 data-title="${ev.title}" 
@@ -252,7 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 data-id="${ev.id}">
                                 <span>🗑️</span><span>ลบ</span>
                             </button>`;
-                        } 
+                        } else {
+                            qrcodeBtn = `<button class="inline-flex items-center gap-1 bg-gray-300 text-gray-500 px-3 py-1 rounded shadow cursor-not-allowed" disabled>
+                                <span>🔗</span><span>QR Code</span>
+                            </button>`;
+                        }
 
                         tbody.innerHTML += `
                             <tr class="hover:bg-blue-50 transition">
@@ -465,8 +451,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         };
                     });
                 }
-                // เรียกใช้ DataTables หลังจากเติมข้อมูล
-                setTimeout(initDataTable, 0);
+
+                // สร้าง DataTable ใหม่หลังเติมข้อมูลเสร็จ
+                $('#event-table').DataTable({
+                    language: {
+                        search: "ค้นหา:",
+                        lengthMenu: "แสดง _MENU_ รายการ",
+                        info: "แสดง _START_ ถึง _END_ จาก _TOTAL_ รายการ",
+                        paginate: {
+                            first: "หน้าแรก",
+                            last: "หน้าสุดท้าย",
+                            next: "ถัดไป",
+                            previous: "ก่อนหน้า"
+                        },
+                        zeroRecords: "ไม่พบข้อมูล",
+                        infoEmpty: "ไม่มีข้อมูลให้แสดง",
+                        infoFiltered: "(กรองจาก _MAX_ รายการทั้งหมด)"
+                    }
+                });
+
             });
     }
     loadEvents();
