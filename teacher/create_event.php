@@ -188,7 +188,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // โหลดข้อมูลกิจกรรมจาก controller
     function loadEvents() {
         fetch('../controllers/EventController.php')
-            .then(res => res.json())
+            .then(async res => {
+                // Try to parse JSON, if fail, show error
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    // Show error in alert and console
+                    Swal.fire('เกิดข้อผิดพลาด', 'Server response is not valid JSON:<br><pre style="text-align:left">' + text.replace(/</g, '&lt;') + '</pre>', 'error');
+                    console.error('Invalid JSON from server:', text);
+                    return { success: false, events: [] };
+                }
+            })
             .then(data => {
                 const tbody = document.getElementById('event-table-body');
                 tbody.innerHTML = '';
