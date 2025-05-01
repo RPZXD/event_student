@@ -5,5 +5,11 @@
     "nameTitle": "EventStd",
     "footerCredit": "by ICT @Phichai school. พัฒนาระบบโดย นายทิวา เรืองศรี ทีมงาน ICT โรงเรียนพิชัย",
     "logoLink": "logo-phicha.png"
+  },
+  "database": {
+    "host": "localhost",
+    "dbname": "your_production_db_name",
+    "username": "your_production_db_user",
+    "password": "your_production_db_password"
   }
 }
