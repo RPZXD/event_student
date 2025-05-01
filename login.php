@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// TEMP: Show errors for debugging (remove in production)
+// เพิ่ม error reporting สำหรับ debug (ลบออกใน production)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -45,7 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md" data-aos="fade-up">
             <div class="flex flex-col items-center mb-4">
                 <?php if (!empty($pageConfig['logoLink'])): ?>
-                    <img src="dist/img/<?php echo htmlspecialchars($pageConfig['logoLink']); ?>" alt="logo" class="h-14 w-14 mb-2 rounded-full bg-white p-1 shadow" />
+                    <?php
+                    // ตรวจสอบว่า logoLink เป็น path หรือแค่ชื่อไฟล์
+                    $logoSrc = (strpos($pageConfig['logoLink'], '/') === false && strpos($pageConfig['logoLink'], '\\') === false)
+                        ? 'dist/img/' . htmlspecialchars($pageConfig['logoLink'])
+                        : htmlspecialchars($pageConfig['logoLink']);
+                    ?>
+                    <img src="<?php echo $logoSrc; ?>" alt="logo" class="h-14 w-14 mb-2 rounded-full bg-white p-1 shadow" />
                 <?php endif; ?>
                 <span class="text-blue-700 font-bold text-lg"><?php echo htmlspecialchars($pageConfig['nameschool']); ?></span>
             </div>
@@ -66,6 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <form action="login.php" method="POST">
                 <div class="mb-4">
                     <label for="username" class="block text-lg font-medium text-gray-700">ชื่อผู้ใช้ 👤</label>
+                    <input type="text" name="username" id="username" class="mt-1 p-3 w-full border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="กรอกชื่อผู้ใช้" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-lg font-medium text-gray-700">รหัสผ่าน 🔒</label>
+                    <div class="relative">
                         <input type="password" name="password" id="password" class="mt-1 p-3 w-full border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-12" placeholder="กรอกรหัสผ่าน" required>
                         <button type="button" id="togglePassword" tabindex="-1"
                             class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 focus:outline-none"
