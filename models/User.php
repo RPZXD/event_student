@@ -52,12 +52,6 @@ class User
         return false;
     }
 
-    // เพิ่มเมธอด static สำหรับดึงข้อมูลครู
-    public static function getTeacherByUsername($username)
-    {
-        $db = new \App\DatabaseUsers();
-        return $db->getTeacherByUsername($username);
-    }
 
     // ตรวจสอบว่า role_edoc ของ user อยู่ในกลุ่ม role ที่เลือก
     private static function roleMatch($role_edoc, $role)
