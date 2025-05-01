@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 data-id="${ev.id}" 
                                 data-title="${ev.title}" 
                                 data-description="${ev.description || ''}" 
-                                data-event_date="${thaiDate}" 
+                                data-event_date="${ev.event_date}" 
                                 data-hours="${ev.hours}" 
                                 data-category="${ev.category || ''}" 
                                 data-max_students="${ev.max_students || ''}">
@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             document.getElementById('edit-id').value = btn.dataset.id;
                             document.getElementById('edit-title').value = btn.dataset.title;
                             document.getElementById('edit-description').value = btn.dataset.description;
-                            document.getElementById('edit-event_date').value = btn.dataset.date;
+                            document.getElementById('edit-event_date').value = btn.dataset.event_date;
                             document.getElementById('edit-hours').value = btn.dataset.hours;
                             document.getElementById('edit-category').value = btn.dataset.category;
                             document.getElementById('edit-max_students').value = btn.dataset.max_students;
