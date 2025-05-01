@@ -195,6 +195,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (data.success && Array.isArray(data.events)) {
                     data.events.forEach(ev => {
+
+                        console.log(ev);
                         let qrcodeBtn = '';
                         let editBtn = '';
                         let deleteBtn = '';
