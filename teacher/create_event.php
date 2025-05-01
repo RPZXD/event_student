@@ -163,6 +163,9 @@ require_once('header.php');
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Define currentUser from PHP session
+    const currentUser = <?php echo json_encode($_SESSION['username']); ?>;
+
     const modal = document.getElementById('event-modal');
     const openBtn = document.getElementById('create-event-btn');
     const closeBtn = document.getElementById('close-modal');
@@ -181,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     closeBtn.onclick = () => modal.classList.add('hidden');
     if (closeResultBtn) closeResultBtn.onclick = () => modal.classList.add('hidden');
-
+    console.log(<?php echo json_encode($_SESSION['username']); ?>);
     // โหลดข้อมูลกิจกรรมจาก controller
     function loadEvents() {
         fetch('../controllers/EventController.php')
@@ -189,7 +192,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 const tbody = document.getElementById('event-table-body');
                 tbody.innerHTML = '';
-                const currentUser = <?= json_encode($_SESSION['username']) ?>;
 
                 if (data.success && Array.isArray(data.events)) {
                     data.events.forEach(ev => {
