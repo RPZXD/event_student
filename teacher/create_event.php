@@ -1,8 +1,5 @@
 <?php 
 session_start();
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 // เช็ค session และ role
 if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'ครู') {
@@ -163,9 +160,6 @@ require_once('header.php');
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Define currentUser from PHP session
-    const currentUser = <?php echo json_encode($_SESSION['username']); ?>;
-
     const modal = document.getElementById('event-modal');
     const openBtn = document.getElementById('create-event-btn');
     const closeBtn = document.getElementById('close-modal');
@@ -184,30 +178,18 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     closeBtn.onclick = () => modal.classList.add('hidden');
     if (closeResultBtn) closeResultBtn.onclick = () => modal.classList.add('hidden');
-    console.log(<?php echo json_encode($_SESSION['username']); ?>);
+
     // โหลดข้อมูลกิจกรรมจาก controller
     function loadEvents() {
         fetch('../controllers/EventController.php')
-            .then(async res => {
-                // Try to parse JSON, if fail, show error
-                const text = await res.text();
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    // Show error in alert and console
-                    Swal.fire('เกิดข้อผิดพลาด', 'Server response is not valid JSON:<br><pre style="text-align:left">' + text.replace(/</g, '&lt;') + '</pre>', 'error');
-                    console.error('Invalid JSON from server:', text);
-                    return { success: false, events: [] };
-                }
-            })
+            .then(res => res.json())
             .then(data => {
                 const tbody = document.getElementById('event-table-body');
                 tbody.innerHTML = '';
+                const currentUser = <?= json_encode($_SESSION['username']) ?>;
 
                 if (data.success && Array.isArray(data.events)) {
                     data.events.forEach(ev => {
-
-                        console.log(ev);
                         let qrcodeBtn = '';
                         let editBtn = '';
                         let deleteBtn = '';
