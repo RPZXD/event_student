@@ -11,10 +11,10 @@ class DatabaseEvent
     public function __construct(
         $host = 'localhost',
         $dbname = 'phichaia_event',
-        $username = 'root',
-        $password = ''
-        // $username = 'phichaia_stdcare',
-        // $password = '4w87!9lZp'
+        // $username = 'root',
+        // $password = ''
+        $username = 'phichaia_eventstd',
+        $password = 'hi5D@z310'
     ) {
         $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
         try {
