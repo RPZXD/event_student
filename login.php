@@ -1,6 +1,11 @@
 <?php
 session_start();
 
+// TEMP: Show errors for debugging (remove in production)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // โหลด config
 $config = json_decode(file_get_contents(__DIR__ . '/config.json'), true);
 $pageConfig = $config['global'];
@@ -61,11 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <form action="login.php" method="POST">
                 <div class="mb-4">
                     <label for="username" class="block text-lg font-medium text-gray-700">ชื่อผู้ใช้ 👤</label>
-                    <input type="text" name="username" id="username" class="mt-1 p-3 w-full border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="กรอกชื่อผู้ใช้" required>
-                </div>
-                <div class="mb-6">
-                    <label for="password" class="block text-lg font-medium text-gray-700">รหัสผ่าน 🔒</label>
-                    <div class="relative">
                         <input type="password" name="password" id="password" class="mt-1 p-3 w-full border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-12" placeholder="กรอกรหัสผ่าน" required>
                         <button type="button" id="togglePassword" tabindex="-1"
                             class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 focus:outline-none"
