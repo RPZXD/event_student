@@ -101,11 +101,11 @@ if ($code) {
         </div>
         <section class="content mb-4"> 
             <div class="container-fluid">
-                <div class="card">
+                <div class="card shadow-lg border border-blue-200 rounded-lg overflow-hidden mb-4 bg-white flex flex-col"> 
                     <div class="card-header bg-blue-600 text-white font-semibold text-lg">
                         📲 ลงทะเบียนกิจกรรม
                     </div>
-                    <div class="card-body w-1/2 mx-auto">
+                    <div class="card-body ">
                         <div class="overflow-x-auto">
                             <form method="get" class="mb-4">
                                 <label class="block mb-2 font-semibold">กรอกรหัสกิจกรรม</label>
