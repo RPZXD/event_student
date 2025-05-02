@@ -25,11 +25,13 @@ class StudentEvent
                 WHERE sal.student_id = ?";
         $params = [$student_id];
 
-        if (!empty($pee)) {
+        // Only add pee condition if not empty and not null
+        if ($pee !== null && $pee !== '') {
             $sql .= " AND a.pee = ?";
             $params[] = $pee;
         }
-        if (!empty($term)) {
+        // Only add term condition if not empty and not null
+        if ($term !== null && $term !== '') {
             $sql .= " AND a.term = ?";
             $params[] = $term;
         }
