@@ -27,23 +27,14 @@ class StudentEvent
                 WHERE sal.student_id = ?";
         $params = [$student_id];
 
-        // เลือกทั้งปีและเทอม
-        if ($pee !== null && $pee !== '' && $term !== null && $term !== '') {
-            $sql .= " AND a.pee = ? AND a.term = ?";
-            $params[] = $pee;
-            $params[] = $term;
-        }
-        // เลือกแค่ปี (และ term ว่าง)
-        else if ($pee !== null && $pee !== '' && ($term === null || $term === '')) {
+        if (!empty($pee)) {
             $sql .= " AND a.pee = ?";
             $params[] = $pee;
         }
-        // เลือกแค่เทอม (และ pee ว่าง)
-        else if (($pee === null || $pee === '') && $term !== null && $term !== '') {
+        if (!empty($term)) {
             $sql .= " AND a.term = ?";
             $params[] = $term;
         }
-        // ไม่เลือกอะไรเลย: ไม่ต้องเพิ่มเงื่อนไข
 
         $sql .= " ORDER BY a.event_date DESC";
 
@@ -51,10 +42,9 @@ class StudentEvent
         $stmt->execute($params);
         $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // เติมชื่อครูจาก DatabaseUsers
         foreach ($events as &$ev) {
             $teacher = $this->dbUsers->getTeacherByUsername($ev['teacher_id']);
-            $ev['teacher_name'] = $teacher && isset($teacher['Teach_name']) ? $teacher['Teach_name'] : $ev['teacher_id'];
+            $ev['teacher_name'] = $teacher['Teach_name'] ?? $ev['teacher_id'];
         }
         unset($ev);
 

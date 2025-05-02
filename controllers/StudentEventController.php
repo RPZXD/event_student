@@ -4,17 +4,18 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../models/StudentEvent.php';
 
 if (isset($_GET['action']) && $_GET['action'] === 'terms_pees') {
-    // คืนค่า term/pee ที่มีใน activities
-    require_once __DIR__ . '/../classes/DatabaseEvent.php';
-    $db = new \App\DatabaseEvent();
-    $pdo = $db->getPDO();
-    $terms = [];
-    $pees = [];
-    $stmt = $pdo->query("SELECT DISTINCT term FROM activities ORDER BY term DESC");
-    $terms = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    $stmt = $pdo->query("SELECT DISTINCT pee FROM activities ORDER BY pee DESC");
-    $pees = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    echo json_encode(['success' => true, 'terms' => $terms, 'pees' => $pees]);
+    try {
+        require_once __DIR__ . '/../classes/DatabaseEvent.php';
+        $db = new \App\DatabaseEvent();
+        $pdo = $db->getPDO();
+        $stmt = $pdo->query("SELECT DISTINCT term FROM activities ORDER BY term DESC");
+        $terms = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $stmt = $pdo->query("SELECT DISTINCT pee FROM activities ORDER BY pee DESC");
+        $pees = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        echo json_encode(['success' => true, 'terms' => $terms, 'pees' => $pees]);
+    } catch (\Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error fetching terms and pees: ' . $e->getMessage()]);
+    }
     exit;
 }
 
@@ -34,5 +35,5 @@ try {
     $events = $model->getRegisteredEvents($student_id, $pee, $term);
     echo json_encode(['success' => true, 'events' => $events]);
 } catch (\Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Error fetching events: ' . $e->getMessage()]);
 }
