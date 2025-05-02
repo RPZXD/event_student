@@ -10,6 +10,7 @@ require_once __DIR__ . '/../classes/DatabaseEvent.php';
 require_once __DIR__ . '/../classes/DatabaseUsers.php';
 require_once __DIR__ . '/../models/Event.php';
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/TermPee.php'; // เพิ่มบรรทัดนี้
 
 use App\DatabaseEvent;
 use App\DatabaseUsers;
@@ -96,6 +97,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ดึง term/pee ปัจจุบัน
+    $termPee = \TermPee::getCurrent();
+
     $data = [
         'title' => trim($input['title'] ?? ''),
         'description' => trim($input['description'] ?? ''),
@@ -103,7 +107,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'hours' => intval($input['hours'] ?? 0),
         'category' => trim($input['category'] ?? ''),
         'teacher_id' => $_SESSION['username'],
-        'max_students' => intval($input['max_students'] ?? 0)
+        'max_students' => intval($input['max_students'] ?? 0),
+        'term' => $termPee->term,
+        'pee' => $termPee->pee
     ];
 
     $expire_date = isset($input['expire_date']) && $input['expire_date'] ? $input['expire_date'] : null;

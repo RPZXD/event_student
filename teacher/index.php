@@ -39,7 +39,7 @@ require_once('header.php');
                 <!-- คู่มือการใช้งานสำหรับครู -->
             <!-- ขั้นตอนการสร้างรหัสกิจกรรม (สำหรับครู) -->
             <div class="mt-6 max-w-2xl mx-auto bg-white rounded-lg shadow p-6 border border-blue-200">
-                    <h2 class="text-xl font-bold text-blue-700 mb-4 flex items-center gap-2">
+                    <h2 class="text-lg font-bold text-blue-700 mb-4 flex items-center gap-2">
                         📝 ขั้นตอนการสร้างรหัสกิจกรรม (สำหรับครู)
                     </h2>
                     <ol class="list-decimal list-inside space-y-2 text-gray-700">

@@ -16,8 +16,8 @@ class Event
     // สร้างกิจกรรมใหม่
     public function createEvent($data)
     {
-        $sql = "INSERT INTO activities (title, description, event_date, hours, category, teacher_id, created_at, max_students)
-                VALUES (:title, :description, :event_date, :hours, :category, :teacher_id, NOW(), :max_students)";
+        $sql = "INSERT INTO activities (title, description, event_date, hours, category, teacher_id, created_at, max_students, term, pee)
+                VALUES (:title, :description, :event_date, :hours, :category, :teacher_id, NOW(), :max_students, :term, :pee)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             ':title' => $data['title'],
@@ -26,7 +26,9 @@ class Event
             ':hours' => $data['hours'],
             ':category' => $data['category'],
             ':teacher_id' => $data['teacher_id'],
-            ':max_students' => $data['max_students']
+            ':max_students' => $data['max_students'],
+            ':term' => $data['term'],
+            ':pee' => $data['pee']
         ]);
         return $this->pdo->lastInsertId();
     }
