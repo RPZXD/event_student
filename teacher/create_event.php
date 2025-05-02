@@ -33,14 +33,14 @@ require_once('header.php');
             <div class="container-fluid">
 
             <div class="card">
-                <div class="card-header bg-blue-600 text-white font-semibold text-lg">
+                <div class="card-header bg-indigo-400 text-white font-semibold text-lg">
                     รายการกิจกรรม
                 </div>
                 <div class="card-body">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                         <button id="create-event-btn" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow flex items-center gap-2" >
                             <span class="text-base">➕</span>
-                            <span>สร้างกิจกรรม</span>
+                            <span class="text-2xl">สร้างกิจกรรม</span>
                         </button>
                     </div>
                     <!-- Modal สร้างกิจกรรม -->
@@ -79,6 +79,10 @@ require_once('header.php');
                                     <label class="block mb-1 font-semibold">👥 จำนวนสูงสุดที่ลงทะเบียนได้</label>
                                     <input type="number" name="max_students" min="1" required class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="เช่น 50">
                                 </div>
+                                <div class="mb-3">
+                                    <label class="block mb-1 font-semibold">📆 วันหมดอายุของโค้ด (ถ้ามี)</label>
+                                    <input type="date" name="expire_date" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                </div>
                                 <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded flex items-center justify-center gap-2">
                                     <span>🚀</span>
                                     <span>สร้างกิจกรรม</span>
@@ -115,12 +119,12 @@ require_once('header.php');
                     <table id="event-table" class="min-w-full bg-white border border-gray-200 rounded shadow display">
                         <thead>
                             <tr class="bg-blue-100 text-blue-900">
-                                <th class="px-4 py-2 text-left">🎯 ชื่อกิจกรรม</th>
-                                <th class="px-4 py-2 text-left">📅 วันที่จัด</th>
-                                <th class="px-4 py-2 text-left">⏰ ชั่วโมง</th>
-                                <th class="px-4 py-2 text-left">👩‍🏫 ผู้สร้าง</th>
-                                <th class="px-4 py-2">จำนวน</th>
-                                <th class="px-4 py-2 text-left">🔎 รายละเอียด</th>
+                                <th class="px-4 py-2 text-center">🎯 ชื่อกิจกรรม</th>
+                                <th class="px-4 py-2 text-center">📅 วันที่จัด</th>
+                                <th class="px-4 py-2 text-center">⏰ ชั่วโมง</th>
+                                <th class="px-4 py-2 text-center">👩‍🏫 ผู้สร้าง</th>
+                                <th class="px-4 py-2 text-center">จำนวน</th>
+                                <th class="px-4 py-2 text-center">🔎 รายละเอียด</th>
                             </tr>
                         </thead>
                         <tbody id="event-table-body">
@@ -140,11 +144,42 @@ require_once('header.php');
                         <div class="bg-white rounded-lg shadow-lg w-full max-w-xs p-6 relative flex flex-col items-center">
                             <button id="close-qrcode-modal" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
                             <div class="mb-2 text-lg font-bold flex items-center gap-2">🔗 QR Code กิจกรรม</div>
+                            <div class="mb-2">รหัสกิจกรรม: <span id="modal-event-code" class="font-mono text-blue-600"></span></div>
                             <div id="modal-qrcode" class="mb-2"></div>
                             <button id="modal-download-qrcode" class="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2">
                                 <span>⬇️</span>
                                 <span>ดาวน์โหลด QR CODE</span>
                             </button>
+                        </div>
+                    </div>
+                    <!-- Modal รายชื่อโค้ด -->
+                    <div id="codes-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+                        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative flex flex-col max-h-[90vh]">
+                            <button id="close-codes-modal" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+                            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">📄 รายชื่อโค้ดกิจกรรม</h2>
+                            <div id="codes-modal-title" class="mb-2 font-semibold"></div>
+                            <button id="download-codes-excel" class="mb-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center gap-2 self-end">
+                                <span>⬇️</span>
+                                <span>ดาวน์โหลด Excel</span>
+                            </button>
+                            <button id="print-codes-table" class="mb-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2 self-end">
+                                <span>🖨️</span>
+                                <span>พิมพ์ตาราง</span>
+                            </button>
+                            <div class="overflow-x-auto flex-1" style="overflow-y:auto; max-height:55vh;">
+                                <table class="min-w-full border" id="codes-table">
+                                    <thead>
+                                        <tr class="bg-gray-100">
+                                            <th class="px-2 py-1 border">#</th>
+                                            <th class="px-2 py-1 border">โค้ด</th>
+                                            <th class="px-2 py-1 border">QR</th>
+                                            <th class="px-2 py-1 border">สถานะ</th>
+                                            <th class="px-2 py-1 border print-hide">คัดลอก</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="codes-table-body"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -158,6 +193,10 @@ require_once('header.php');
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- QRCode.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('event-modal');
@@ -216,10 +255,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             day: 'numeric'
                         });
                         if (ev.teacher_id == currentUser) {
-                            qrcodeBtn = `<button class="show-qrcode-btn inline-flex items-center gap-1 bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded shadow transition" 
-                                data-id="${ev.id}" data-title="${ev.title}">
-                                <span>🔗</span><span>QR Code</span>
-                            </button>`;
+                            qrcodeBtn = ``;
+                            // เพิ่มปุ่มดูโค้ดทั้งหมด (เฉพาะกิจกรรมที่จำกัดจำนวน)
+                            let codesBtn = '';
+                            if (ev.max_students > 0) {
+                                codesBtn = `<button class="show-codes-btn inline-flex items-center gap-1 bg-indigo-500 hover:bg-indigo-700 text-white px-3 py-1 rounded shadow transition"
+                                    data-id="${ev.id}" data-title="${ev.title}">
+                                    <span>📄</span><span>ดูโค้ดทั้งหมด</span>
+                                </button>`;
+                            }
                             editBtn = `<button class="edit-event-btn inline-flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded shadow transition"
                                 data-id="${ev.id}" 
                                 data-title="${ev.title}" 
@@ -234,21 +278,21 @@ document.addEventListener('DOMContentLoaded', function() {
                                 data-id="${ev.id}">
                                 <span>🗑️</span><span>ลบ</span>
                             </button>`;
+                            // เพิ่ม codesBtn เข้าไป
+                            qrcodeBtn += codesBtn;
                         } else {
-                            qrcodeBtn = `<button class="inline-flex items-center gap-1 bg-gray-300 text-gray-500 px-3 py-1 rounded shadow cursor-not-allowed" disabled>
-                                <span>🔗</span><span>QR Code</span>
-                            </button>`;
+                            qrcodeBtn = ``;
                         }
 
                         tbody.innerHTML += `
                             <tr class="hover:bg-blue-50 transition">
-                                <td class="px-4 py-2 flex items-center gap-2">🎯 <span>${ev.title}</span></td>
-                                <td class="px-4 py-2">📅 ${thaiDate}</td>
-                                <td class="px-4 py-2">⏰ ${ev.hours} ชั่วโมง</td>
-                                <td class="px-4 py-2 flex items-center gap-2">👩‍🏫 <span>${ev.teacher_name || ev.teacher_id}</span></td>
-                                <td class="px-4 py-2">👥 ${status}
+                                <td class="px-4 py-2 text-center">🎯 <span>${ev.title}</span></td>
+                                <td class="px-4 py-2 text-center">📅 ${thaiDate}</td>
+                                <td class="px-4 py-2 text-center">⏰ ${ev.hours} ชั่วโมง</td>
+                                <td class="px-4 py-2 text-left">👩‍🏫 <span>${ev.teacher_name || ev.teacher_id}</span></td>
+                                <td class="px-4 py-2 text-center">👥 ${status}
                                                     <span>${progressBar}</span></td>
-                                <td class="px-4 py-2 flex gap-2">
+                                <td class="px-4 py-2 text-center">
                                     <button class="show-detail-btn inline-flex items-center gap-1 bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded shadow transition"
                                         data-title="${ev.title}" data-description="${ev.description || ''}" data-date="${ev.event_date}" data-hours="${ev.hours}" data-category="${ev.category || ''}" data-max="${ev.max_students || ''}" data-teacher="${ev.teacher_name || ev.teacher_id}">
                                         <span>🔎</span>
@@ -295,7 +339,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             const modalQrDiv = document.getElementById('modal-qrcode');
                             modalQrDiv.innerHTML = '';
                             // ดึง code จาก backend ด้วย activity_id
-                            console.log(btn.dataset.id);
                             fetch('../controllers/EventController.php?activity_id=' + btn.dataset.id)
                                 .then(res => res.json())
                                 .then(res => {
@@ -303,12 +346,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                     if (!code) {
                                         modalQrDiv.innerHTML = '<div class="text-red-500">ไม่พบรหัสกิจกรรม</div>';
                                     } else {
+                                        // สมมติว่าหน้าเช็คอินคือ ../student/checkin.php?code=...
+                                        const qrUrl = 'https://eventstd.phichai.ac.th/event_student/student/checkin.php?code=' + encodeURIComponent(code);
                                         new QRCode(modalQrDiv, {
-                                            text: code,
+                                            text: qrUrl,
                                             width: 128,
                                             height: 128
                                         });
                                         // set download
+                                        document.getElementById('modal-event-code').innerText = code;
                                         document.getElementById('modal-download-qrcode').onclick = function() {
                                             const qrImg = modalQrDiv.querySelector('img');
                                             if (qrImg) {
@@ -450,6 +496,102 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                         };
                     });
+
+                    // Bind ปุ่มดูโค้ดทั้งหมด
+                    let lastCodesExportData = [];
+                    document.querySelectorAll('.show-codes-btn').forEach(btn => {
+                        btn.onclick = function() {
+                            const codesModal = document.getElementById('codes-modal');
+                            const codesTableBody = document.getElementById('codes-table-body');
+                            const codesModalTitle = document.getElementById('codes-modal-title');
+                            codesModalTitle.textContent = 'กิจกรรม: ' + btn.dataset.title;
+                            codesTableBody.innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
+                            // ดึงโค้ดทั้งหมดจาก backend
+                            fetch('../controllers/EventController.php?activity_id=' + btn.dataset.id + '&all_codes=1')
+                                .then(res => res.json())
+                                .then(res => {
+                                    if (Array.isArray(res.codes) && res.codes.length > 0) {
+                                        codesTableBody.innerHTML = '';
+                                        lastCodesExportData = []; // reset
+                                        res.codes.forEach((row, idx) => {
+                                            // QR URL สำหรับแต่ละโค้ด
+                                            const qrUrl = 'https://eventstd.phichai.ac.th/event_student/student/checkin.php?code=' + encodeURIComponent(row.code);
+                                            codesTableBody.innerHTML += `
+                                                <tr>
+                                                    <td class="border px-2 py-1 text-center">${idx + 1}</td>
+                                                    <td class="border px-2 py-1 font-mono">${row.code}</td>
+                                                    <td class="border px-2 py-1"><div id="qr-${row.code}" style="display:inline-block;"></div></td>
+                                                    <td class="border px-2 py-1 text-center">${row.is_used == 1 ? '<span class="text-red-500">ใช้แล้ว</span>' : '<span class="text-green-600">ยังไม่ใช้</span>'}</td>
+                                                    <td class="border px-2 py-1 text-center print-hide">
+                                                        <button class="copy-code-btn bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded" data-code="${row.code}">คัดลอก</button>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                            setTimeout(() => {
+                                                new QRCode(document.getElementById('qr-' + row.code), {
+                                                    text: qrUrl,
+                                                    width: 96,
+                                                    height: 96
+                                                });
+                                            }, 0);
+                                            // สำหรับ export
+                                            lastCodesExportData.push({
+                                                no: idx + 1,
+                                                code: row.code,
+                                                status: row.is_used == 1 ? 'ใช้แล้ว' : 'ยังไม่ใช้'
+                                            });
+                                        });
+                                    } else {
+                                        codesTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">ไม่พบโค้ด</td></tr>';
+                                        lastCodesExportData = [];
+                                    }
+                                });
+                            codesModal.classList.remove('hidden');
+                        };
+                    });
+                    document.getElementById('close-codes-modal').onclick = function() {
+                        document.getElementById('codes-modal').classList.add('hidden');
+                    };
+                    // คัดลอกโค้ด
+                    document.body.addEventListener('click', function(e) {
+                        if (e.target.classList.contains('copy-code-btn')) {
+                            const code = e.target.dataset.code;
+                            navigator.clipboard.writeText(code);
+                            e.target.textContent = 'คัดลอกแล้ว!';
+                            setTimeout(() => { e.target.textContent = 'คัดลอก'; }, 1000);
+                        }
+                    });
+
+                    // ปุ่มดาวน์โหลด Excel
+                    document.getElementById('download-codes-excel').onclick = function () {
+                        if (!lastCodesExportData || lastCodesExportData.length === 0) {
+                            Swal.fire('ไม่มีข้อมูล', 'ไม่พบโค้ดสำหรับดาวน์โหลด', 'warning');
+                            return;
+                        }
+
+                        // เตรียมข้อมูลในรูปแบบ array of objects
+                        const worksheetData = lastCodesExportData.map(row => ({
+                            'ลำดับ': row.no,
+                            'โค้ด': row.code,
+                            'สถานะ': row.status
+                        }));
+
+                        // สร้าง Worksheet และ Workbook
+                        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+                        const workbook = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(workbook, worksheet, 'โค้ดกิจกรรม');
+
+                        // สร้างไฟล์ .xlsx
+                        XLSX.writeFile(workbook, 'activity_codes.xlsx');
+                    };
+
+                    // ปุ่มพิมพ์ตาราง
+                    const printBtn = document.getElementById('print-codes-table');
+                    if (printBtn) {
+                        printBtn.onclick = function() {
+                            window.print();
+                        };
+                    }
                 }
 
                 // สร้าง DataTable ใหม่หลังเติมข้อมูลเสร็จ
@@ -488,13 +630,18 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(res => res.json())
         .then(res => {
             if (res.success) {
+                // ปรับตรงนี้: ถ้ามี unique_codes ให้แสดง QR เฉพาะ
                 eventCodeSpan.textContent = res.code;
                 eventQrDiv.innerHTML = '';
-                new QRCode(eventQrDiv, {
-                    text: res.code,
-                    width: 128,
-                    height: 128
-                });
+                if (res.code) {
+                    // สมมติว่าหน้าเช็คอินคือ ../student/checkin.php?code=...
+                    const qrUrl = 'https://eventstd.phichai.ac.th/event_student/student/checkin.php?code=' + encodeURIComponent(res.code);
+                    new QRCode(eventQrDiv, {
+                        text: qrUrl,
+                        width: 128,
+                        height: 128
+                    });
+                }
                 form.classList.add('hidden');
                 resultDiv.classList.remove('hidden');
                 loadEvents();
@@ -526,6 +673,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<style>
+@media print {
+    /* ซ่อนปุ่มดาวน์โหลดและปุ่มพิมพ์ เฉพาะใน codes-modal */
+    #codes-modal #download-codes-excel,
+    #codes-modal #print-codes-table {
+        display: none !important;
+    }
+    /* ซ่อนคอลัมน์คัดลอก */
+    .print-hide, .print-hide * {
+        display: none !important;
+    }
+    /* พิมพ์เฉพาะ codes-modal */
+    body * {
+        visibility: hidden !important;
+    }
+    #codes-modal, #codes-modal * {
+        visibility: visible !important;
+        background: white !important;
+        color: black !important;
+    }
+    #codes-modal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        /* width: 100vw !important;
+        height: 100vh !important; */
+        z-index: 99999 !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+</style>
 
 <?php require_once('script.php');?>
 </body>

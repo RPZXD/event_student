@@ -9,10 +9,14 @@ function createNavItem($href, $iconClass, $text) {
     </li>';
 }
 
+if (!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'นักเรียน') {
+    echo createNavItem('../login.php', 'bi-box-arrow-in-left', 'เข้าสู่ระบบ');
+} else {
+    echo createNavItem('index.php', 'bi-house', 'หน้าหลัก');
+    echo createNavItem('event_regis.php', 'bi-people-fill', 'ลงทะเบียนกิจกรรม');
+    echo createNavItem('event_list.php', 'bi-list-check', 'กิจกรรมที่ลงทะเบียน');
+    echo createNavItem('../logout.php', 'bi-box-arrow-right', 'ออกจากระบบ');
+}
 
-echo createNavItem('index.php', 'bi-house', 'หน้าหลัก');
-echo createNavItem('club_regis.php', 'bi-people-fill', 'สมัครชุมนุม');
-echo createNavItem('my_club.php', 'bi-star', 'ชุมนุมของฉัน');
-echo createNavItem('../logout.php', 'bi-box-arrow-right', 'ออกจากระบบ');
 
 ?>

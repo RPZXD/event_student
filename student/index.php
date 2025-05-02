@@ -6,11 +6,6 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'นักเรี�
 }
 $user = $_SESSION['user'];
 
-// เปิด error reporting สำหรับ debug (แนะนำให้ปิดใน production)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 // Read configuration from JSON file
 $config = json_decode(file_get_contents('../config.json'), true);
 $global = $config['global'];
