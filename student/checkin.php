@@ -29,14 +29,38 @@ if ($code) {
     $pdo = $db->getPDO();
 
     // หา activity_id จาก code (unique หรือ code ปกติ)
-    $sql = "SELECT a.*, auc.activity_id AS unique_activity_id
-            FROM activities a
-            LEFT JOIN activity_unique_codes auc ON auc.code = ?
-            WHERE a.id = auc.activity_id OR a.id IN (SELECT activity_id FROM activity_codes WHERE code = ?)
-            LIMIT 1";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$code, $code]);
-    $activity = $stmt->fetch(\PDO::FETCH_ASSOC);
+    // ป้องกัน error ถ้าไม่มีตาราง activity_codes
+    $activity = null;
+    try {
+        // ตรวจสอบว่าตาราง activity_codes มีอยู่หรือไม่
+        $hasActivityCodes = false;
+        $checkTable = $pdo->query("SHOW TABLES LIKE 'activity_codes'");
+        if ($checkTable && $checkTable->fetch()) {
+            $hasActivityCodes = true;
+        }
+
+        if ($hasActivityCodes) {
+            $sql = "SELECT a.*, auc.activity_id AS unique_activity_id
+                FROM activities a
+                LEFT JOIN activity_unique_codes auc ON auc.code = ?
+                WHERE a.id = auc.activity_id OR a.id IN (SELECT activity_id FROM activity_codes WHERE code = ?)
+                LIMIT 1";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$code, $code]);
+        } else {
+            // ไม่มี activity_codes ให้หาเฉพาะจาก unique_codes
+            $sql = "SELECT a.*, auc.activity_id AS unique_activity_id
+                FROM activities a
+                LEFT JOIN activity_unique_codes auc ON auc.code = ?
+                WHERE a.id = auc.activity_id
+                LIMIT 1";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$code]);
+        }
+        $activity = $stmt->fetch(\PDO::FETCH_ASSOC);
+    } catch (\Exception $e) {
+        $activity = null;
+    }
 
     if ($activity) {
         $activity_id = $activity['id'];

@@ -17,25 +17,18 @@ use App\Models\Event;
 
 $db = new DatabaseEvent();
 $dbUsers = new DatabaseUsers();
-$pdo = $db->getPDO(); // สมมติว่า DatabaseEvent มีเมธอด getPDO()
+$pdo = $db->getPDO();
 $EventModel = new Event($pdo);
 
-// สร้างกิจกรรมใหม่ หรือ ลงทะเบียนกิจกรรม
+// --- POST: สำหรับเช็คอิน (ไม่ต้อง login ถ้ามี student_id) หรือสร้างกิจกรรม (ต้อง login ครู) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
     if (!$input) $input = $_POST;
 
-    // ตรวจสอบ session
-    if (!isset($_SESSION['username'])) {
-        echo json_encode(['success' => false, 'message' => 'กรุณาเข้าสู่ระบบใหม่']);
-        exit;
-    }
-
-    // เช็คอินด้วย unique code
+    // เช็คอินด้วย unique code (ไม่ต้อง login ถ้ามี student_id)
     if (isset($input['action']) && $input['action'] === 'register_activity') {
         $activity_id = intval($input['activity_id'] ?? 0);
         $code = trim($input['code'] ?? '');
-        // รับ student_id จาก input ถ้ามี (สำหรับกรณีกรอกเอง)
         $student_id = isset($input['student_id']) && $input['student_id'] ? trim($input['student_id']) : ($_SESSION['user']['Stu_id'] ?? null);
 
         if (!$activity_id || !$code || !$student_id) {
@@ -83,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$student_id, $activity_id]);
             }
 
-            // อัปเดต activity_unique_codes: is_used, student_id, used_at
+            // อัปเดต activity_unique_codes: is_used, student_id
             $sql = "UPDATE activity_unique_codes SET is_used = 1, student_id = ? WHERE id = ?";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$student_id, $codeRow['id']]);
@@ -97,7 +90,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // สร้างกิจกรรมใหม่
+    // สร้างกิจกรรมใหม่ (ต้อง login ครู)
+    if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'ครู') {
+        echo json_encode(['success' => false, 'message' => 'กรุณาเข้าสู่ระบบในฐานะครู']);
+        exit;
+    }
+
     $data = [
         'title' => trim($input['title'] ?? ''),
         'description' => trim($input['description'] ?? ''),
@@ -108,38 +106,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'max_students' => intval($input['max_students'] ?? 0)
     ];
 
-    // เพิ่มรับ expire_date (optional)
     $expire_date = isset($input['expire_date']) && $input['expire_date'] ? $input['expire_date'] : null;
 
-    // Validate
     if (!$data['title'] || !$data['event_date'] || !$data['hours'] || !$data['teacher_id']) {
         echo json_encode(['success' => false, 'message' => 'ข้อมูลไม่ครบถ้วน']);
         exit;
     }
 
     try {
-        // 1. สร้างกิจกรรม
         $activity_id = $EventModel->createEvent($data);
 
-        // 2. ถ้า max_students > 0 ให้สร้าง unique codes
         $unique_codes = [];
         if ($data['max_students'] > 0) {
-            // เพิ่ม expire_date ใน SQL
             $insertStmt = $pdo->prepare("INSERT INTO activity_unique_codes (activity_id, code, is_used, expire_date) VALUES (?, ?, 0, ?)");
             for ($i = 0; $i < $data['max_students']; $i++) {
-                // สุ่มโค้ด 8 หลัก (ตัวอักษร+ตัวเลข)
                 $code = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
                 $insertStmt->execute([$activity_id, $code, $expire_date]);
                 $unique_codes[] = $code;
             }
         }
 
-        // 3. ส่งโค้ดแรกกลับไปสำหรับแสดง QR (หรือทั้งหมดถ้าต้องการ)
         echo json_encode([
             'success' => true,
             'activity_id' => $activity_id,
             'unique_codes' => $unique_codes,
-            'code' => $unique_codes[0] ?? null // สำหรับแสดง QR
+            'code' => $unique_codes[0] ?? null
         ]);
     } catch (\Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -147,14 +138,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// ดึงข้อมูลกิจกรรมทั้งหมด
+// --- GET: ดึงข้อมูลกิจกรรม/โค้ด ---
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['activity_id'])) {
     try {
         $sql = "SELECT * FROM activities ORDER BY created_at DESC";
         $stmt = $pdo->query($sql);
         $events = $stmt->fetchAll();
 
-        // ใช้ models/User.php เพื่อดึงชื่อครู
         $eventList = [];
         foreach ($events as $ev) {
             $teacher_name = null;
@@ -179,10 +169,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['activity_id'])) {
     exit;
 }
 
-// ดึง code ล่าสุดของกิจกรรม (สำหรับ QR Code) หรือโค้ดทั้งหมด
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['activity_id'])) {
     $activity_id = intval($_GET['activity_id']);
-    // ถ้า all_codes=1 ให้ดึงโค้ดทั้งหมด
     if (isset($_GET['all_codes'])) {
         $sql = "SELECT code, is_used FROM activity_unique_codes WHERE activity_id = ? ORDER BY id ASC";
         $stmt = $pdo->prepare($sql);
@@ -191,48 +179,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['activity_id'])) {
         echo json_encode(['codes' => $codes]);
         exit;
     }
-    // ถ้าเป็นกิจกรรมที่มี max_students > 0 ให้ดึง unique code ที่ยังไม่ถูกใช้
     $sql = "SELECT max_students FROM activities WHERE id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$activity_id]);
     $activity = $stmt->fetch();
     if ($activity && $activity['max_students'] > 0) {
-        // ดึง unique code ที่ยังไม่ถูกใช้ 1 รายการ
         $sql = "SELECT code FROM activity_unique_codes WHERE activity_id = ? AND is_used = 0 LIMIT 1";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$activity_id]);
         $row = $stmt->fetch();
         echo json_encode(['code' => $row ? $row['code'] : null]);
     } else {
-        // fallback: ใช้ code เดิม
         $sql = "SELECT code FROM activity_codes WHERE activity_id = ? ORDER BY created_at DESC LIMIT 1";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$activity_id]);
         $row = $stmt->fetch();
         echo json_encode(['code' => $row ? $row['code'] : null]);
     }
-    exit;
-}
-
-// ดึง activity_id ที่นักเรียนลงทะเบียนแล้ว
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['student_registered'])) {
-    // ตรวจสอบ session และดึง student_id ที่ถูกต้อง
-    $student_id = null;
-    if (isset($_SESSION['user']['Stu_id'])) {
-        $student_id = $_SESSION['user']['Stu_id'];
-    } elseif (isset($_SESSION['username'])) {
-        // fallback กรณี session เก่า
-        $student_id = $_SESSION['username'];
-    }
-    if (!$student_id) {
-        echo json_encode(['registered' => []]);
-        exit;
-    }
-    $sql = "SELECT activity_id FROM student_activity_logs WHERE student_id = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$student_id]);
-    $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    echo json_encode(['registered' => array_map('intval', $ids)]);
     exit;
 }
 
