@@ -51,38 +51,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         error_log("Term: " . $term);
         error_log("Pee: " . $pee);
 
-        // Query directly without using the model
-        $sql = "SELECT a.*, a.teacher_id
-                FROM student_activity_logs sal
-                INNER JOIN activities a ON sal.activity_id = a.id
-                WHERE sal.student_id = ?";
-        $params = [$student_id];
+        $events = $StudentEventModel->getRegisteredEvents($student_id, $pee, $term);
 
-        if ($pee !== null && $pee !== '') {
-            $sql .= " AND a.pee = ?";
-            $params[] = $pee;
-        }
-        if ($term !== null && $term !== '') {
-            $sql .= " AND a.term = ?";
-            $params[] = $term;
-        }
-        $sql .= " ORDER BY a.event_date DESC";
-
-        error_log("Direct SQL: " . $sql);
-        error_log("Direct Params: " . json_encode($params));
-
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        error_log("Direct Events: " . json_encode($events));
-
-        // Optionally, enrich with teacher name if needed
-        foreach ($events as &$ev) {
-            $teacher = $dbUsers->getTeacherByUsername($ev['teacher_id']);
-            $ev['teacher_name'] = $teacher['Teach_name'] ?? $ev['teacher_id'];
-        }
-        unset($ev);
+        // Debugging: Log the returned events
+        error_log("Returned Events: " . json_encode($events));
 
         echo json_encode(['success' => true, 'events' => $events]);
     } catch (\Exception $e) {
