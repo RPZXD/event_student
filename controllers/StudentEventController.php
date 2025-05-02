@@ -46,7 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $pee = isset($_GET['pee']) ? trim($_GET['pee']) : '';
 
     try {
+        // Debugging: Log the input parameters
+        error_log("Student ID: " . $student_id);
+        error_log("Term: " . $term);
+        error_log("Pee: " . $pee);
+
         $events = $StudentEventModel->getRegisteredEvents($student_id, $pee, $term);
+
+        // Debugging: Log the returned events
+        error_log("Returned Events: " . json_encode($events));
+
         echo json_encode(['success' => true, 'events' => $events]);
     } catch (\Exception $e) {
         echo json_encode(['success' => false, 'message' => 'Error fetching events: ' . $e->getMessage()]);

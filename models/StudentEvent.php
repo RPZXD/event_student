@@ -36,9 +36,16 @@ class StudentEvent
 
         $sql .= " ORDER BY a.event_date DESC";
 
+        // Debugging: Log the SQL query and parameters
+        error_log("SQL Query: " . $sql);
+        error_log("Parameters: " . json_encode($params));
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Debugging: Log the fetched events
+        error_log("Fetched Events: " . json_encode($events));
 
         foreach ($events as &$ev) {
             $teacher = $this->dbUsers->getTeacherByUsername($ev['teacher_id']);
