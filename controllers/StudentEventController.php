@@ -3,6 +3,7 @@ session_start();
 
 header('Content-Type: application/json');
 
+
 require_once __DIR__ . '/../classes/DatabaseEvent.php';
 require_once __DIR__ . '/../classes/DatabaseUsers.php';
 require_once __DIR__ . '/../models/StudentEvent.php';
@@ -12,7 +13,6 @@ require_once __DIR__ . '/../models/TermPee.php';
 use App\DatabaseEvent;
 use App\DatabaseUsers;
 use App\Models\StudentEvent; // Fix namespace for StudentEvent
-use App\Models\Event;
 
 $db = new DatabaseEvent();
 $dbUsers = new DatabaseUsers();
