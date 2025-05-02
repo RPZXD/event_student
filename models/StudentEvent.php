@@ -19,8 +19,6 @@ class StudentEvent
 
     public function getRegisteredEvents($student_id, $pee = null, $term = null)
     {
-        require_once __DIR__ . '/TermPee.php';
-
         $sql = "SELECT a.*, a.teacher_id
                 FROM student_activity_logs sal
                 INNER JOIN activities a ON sal.activity_id = a.id
