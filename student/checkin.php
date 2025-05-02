@@ -101,7 +101,7 @@ if ($code) {
         </div>
         <section class="content mb-4"> 
             <div class="container-fluid">
-                <div class="card shadow-lg border border-blue-200 rounded-lg overflow-hidden mb-4 bg-white flex flex-col"> 
+                <div class="card mt-6 max-w-2xl mx-auto bg-white rounded-lg shadow p-6 border border-blue-200"> 
                     <div class="card-header bg-blue-600 text-white font-semibold text-lg">
                         📲 ลงทะเบียนกิจกรรม
                     </div>

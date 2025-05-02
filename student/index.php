@@ -89,7 +89,7 @@ require_once('header.php');
                         </span>
                     </div>
                 </div>
-                <!-- เพิ่มเนื้อหาอื่นๆที่ต้องการ -->
+                
             </div>
         </section>
     <!-- /.content -->
