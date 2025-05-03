@@ -4,7 +4,7 @@ session_start();
 // รับรหัสกิจกรรมจาก query string
 $code = isset($_GET['code']) ? trim($_GET['code']) : '';
 // Read configuration from JSON file
-$config = json_decode(file_get_contents('../config.json'), true);
+$config = json_decode(file_get_contents('config.json'), true);
 $global = $config['global'];
 
 // ดึงค่า term และ pee จาก session
@@ -24,7 +24,7 @@ $student_id = $_SESSION['user']['Stu_id'] ?? $_SESSION['username'] ?? null;
 
 if ($code) {
     // 1. ตรวจสอบ code ว่าตรงกับกิจกรรมใด
-    require_once('../classes/DatabaseEvent.php');
+    require_once('classes/DatabaseEvent.php');
     $db = new \App\DatabaseEvent();
     $pdo = $db->getPDO();
 
@@ -158,7 +158,7 @@ if ($code) {
             </div>
         </section>
     </div>
-    <?php require_once('../footer.php');?>
+    <?php require_once('footer.php');?>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (result.isConfirmed && result.value) {
                     regBtn.disabled = true;
                     regBtn.textContent = 'กำลังลงทะเบียน...';
-                    fetch('../controllers/EventController.php', {
+                    fetch('controllers/EventController.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

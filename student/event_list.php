@@ -309,6 +309,38 @@ document.addEventListener('DOMContentLoaded', function() {
             </tr>
         `;
 
+        // ท้ายกระดาษ
+        const footerHtml = `
+                <!-- ท้ายกระดาษ -->
+                    <div style="margin-top: 30px; padding: 0 50px;">
+
+                        <!-- กลุ่มซ้าย-ขวา -->
+                        <div style="display: flex; justify-content: space-between;">
+                            <!-- ฝั่งซ้าย -->
+                            <div style="text-align: center; width: 45%;">
+                                ..................................................<br>
+                                (นายบุญลือ หนุนนาค)<br>
+                                หัวหน้างานกิจกรรมนักเรียน
+                            </div>
+
+                            <!-- ฝั่งขวา -->
+                            <div style="text-align: center; width: 45%;">
+                                ..................................................<br>
+                                (นางอานุชรา ใจปัญญา)<br>
+                                รองผู้อำนวยการกลุ่มบริหารกิจการนักเรียน
+                            </div>
+                        </div>
+
+                        <!-- เว้นระยะห่างเล็กน้อย -->
+                        <div style="margin-top: 40px; text-align: center;">
+                            ..................................................<br>
+                            (นางสาวรสสุคนธ์ อินชัยเขา)<br>
+                            ผู้อำนวยการโรงเรียน
+                        </div>
+
+                    </div>
+        `;
+
         const transcriptContent = `
             <html>
             <head>
@@ -383,6 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${summaryRowsHtml}
                     </tbody>
                 </table>
+                ${footerHtml}
             </body>
             </html>
         `;

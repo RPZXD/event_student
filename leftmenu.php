@@ -11,8 +11,8 @@ function createNavItem($href, $iconClass, $text) {
 
     // guest/ยังไม่ login
     echo createNavItem('index.php', 'bi-house', 'หน้าหลัก');
-    echo createNavItem('student/checkin.php', 'bi-check', 'ลงทะเบียนกิจกรรม');
-    echo createNavItem('event_list.php', 'bi-list-check', 'รายชื่อกิจกรรม');
+    echo createNavItem('checkin.php', 'bi-check', 'ลงทะเบียนกิจกรรม');
+    // echo createNavItem('event_list.php', 'bi-list-check', 'รายชื่อกิจกรรม');
     echo createNavItem('login.php', 'bi-box-arrow-in-right', 'ลงชื่อเข้าสู่ระบบ');
 
 ?>
