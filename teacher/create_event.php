@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         modalQrDiv.innerHTML = '<div class="text-red-500">ไม่พบรหัสกิจกรรม</div>';
                                     } else {
                                         // สมมติว่าหน้าเช็คอินคือ ../student/checkin.php?code=...
-                                        const qrUrl = 'https://eventstd.phichai.ac.th/student/checkin.php?code=' + encodeURIComponent(code);
+                                        const qrUrl = 'https://eventstd.phichai.ac.th/checkin.php?code=' + encodeURIComponent(code);
                                         new QRCode(modalQrDiv, {
                                             text: qrUrl,
                                             width: 128,
@@ -515,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         lastCodesExportData = []; // reset
                                         res.codes.forEach((row, idx) => {
                                             // QR URL สำหรับแต่ละโค้ด
-                                            const qrUrl = 'https://eventstd.phichai.ac.th/student/checkin.php?code=' + encodeURIComponent(row.code);
+                                            const qrUrl = 'https://eventstd.phichai.ac.th/checkin.php?code=' + encodeURIComponent(row.code);
                                             codesTableBody.innerHTML += `
                                                 <tr>
                                                     <td class="border px-2 py-1 text-center">${idx + 1}</td>
@@ -635,7 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 eventQrDiv.innerHTML = '';
                 if (res.code) {
                     // สมมติว่าหน้าเช็คอินคือ ../student/checkin.php?code=...
-                    const qrUrl = 'https://eventstd.phichai.ac.th/student/checkin.php?code=' + encodeURIComponent(res.code);
+                    const qrUrl = 'https://eventstd.phichai.ac.th/checkin.php?code=' + encodeURIComponent(res.code);
                     new QRCode(eventQrDiv, {
                         text: qrUrl,
                         width: 128,
