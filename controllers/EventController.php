@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['activity_id'])) {
         $row = $stmt->fetch();
         echo json_encode(['code' => $row ? $row['code'] : null]);
     } else {
-        $sql = "SELECT code FROM activity_codes WHERE activity_id = ? ORDER BY created_at DESC LIMIT 1";
+        $sql = "SELECT code FROM activity_unique_codes WHERE activity_id = ? ORDER BY created_at DESC LIMIT 1";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$activity_id]);
         $row = $stmt->fetch();
@@ -225,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     // ลบกิจกรรมและ code ที่เกี่ยวข้อง
     try {
         $pdo->beginTransaction();
-        $pdo->prepare("DELETE FROM activity_codes WHERE activity_id = ?")->execute([$id]);
+        $pdo->prepare("DELETE FROM activity_unique_codes WHERE activity_id = ?")->execute([$id]);
         $pdo->prepare("DELETE FROM activity_unique_codes WHERE activity_id = ?")->execute([$id]);
         $pdo->prepare("DELETE FROM activities WHERE id = ?")->execute([$id]);
         $pdo->commit();
