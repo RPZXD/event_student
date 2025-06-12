@@ -569,15 +569,51 @@ document.addEventListener('DOMContentLoaded', function() {
                             return;
                         }
 
-                        // เตรียมข้อมูลในรูปแบบ array of objects
-                        const worksheetData = lastCodesExportData.map(row => ({
-                            'ลำดับ': row.no,
-                            'โค้ด': row.code,
-                            'สถานะ': row.status
-                        }));
+                        // สร้างข้อมูลในรูปแบบ 5 โค้ดต่อแถว
+                        const codesPerRow = 5;
+                        const worksheetData = [];
+                        
+                        // เพิ่มหัวข้อ
+                        const activityTitle = document.getElementById('codes-modal-title').textContent;
+                        worksheetData.push([activityTitle]);
+                        worksheetData.push([]); // บรรทัดว่าง
+                        
+                        // จัดเรียงโค้ดเป็นแถวๆ
+                        for (let i = 0; i < lastCodesExportData.length; i += codesPerRow) {
+                            const row = [];
+                            for (let j = 0; j < codesPerRow; j++) {
+                                if (i + j < lastCodesExportData.length) {
+                                    row.push(lastCodesExportData[i + j].code);
+                                } else {
+                                    row.push(''); // เซลล์ว่างถ้าไม่มีโค้ด
+                                }
+                            }
+                            worksheetData.push(row);
+                        }
 
                         // สร้าง Worksheet และ Workbook
-                        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+                        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+                        
+                        // ปรับขนาดคอลัมน์
+                        const colWidths = [];
+                        for (let i = 0; i < codesPerRow; i++) {
+                            colWidths.push({ wch: 15 }); // ความกว้าง 15 ตัวอักษร
+                        }
+                        worksheet['!cols'] = colWidths;
+                        
+                        // จัดกึ่งกลางหัวข้อ
+                        if (worksheet['A1']) {
+                            worksheet['A1'].s = {
+                                alignment: { horizontal: 'center' },
+                                font: { bold: true, sz: 14 }
+                            };
+                        }
+                        
+                        // รวมเซลล์หัวข้อ
+                        worksheet['!merges'] = [
+                            { s: { r: 0, c: 0 }, e: { r: 0, c: codesPerRow - 1 } }
+                        ];
+
                         const workbook = XLSX.utils.book_new();
                         XLSX.utils.book_append_sheet(workbook, worksheet, 'โค้ดกิจกรรม');
 
@@ -589,7 +625,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const printBtn = document.getElementById('print-codes-table');
                     if (printBtn) {
                         printBtn.onclick = function() {
-                            window.print();
+                            // สร้างหน้าพิมพ์พิเศษสำหรับ QR codes
+                            createPrintLayout();
                         };
                     }
                 }
@@ -671,38 +708,141 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
     }
+
+    // ฟังก์ชันสร้างเลย์เอาต์สำหรับพิมพ์ QR codes
+    function createPrintLayout() {
+        // สร้าง div สำหรับพิมพ์
+        let printDiv = document.getElementById('print-qr-layout');
+        if (printDiv) printDiv.remove();
+        
+        printDiv = document.createElement('div');
+        printDiv.id = 'print-qr-layout';
+        printDiv.className = 'print-only-layout';
+        
+        // ดึง QR codes จากตาราง
+        const qrElements = document.querySelectorAll('#codes-table tbody tr td:nth-child(3) div[id^="qr-"]');
+        const codes = document.querySelectorAll('#codes-table tbody tr td:nth-child(2)');
+        
+        if (qrElements.length === 0) {
+            alert('ไม่พบ QR Code สำหรับพิมพ์');
+            return;
+        }
+        
+        // สร้างหัวเรื่อง
+        const activityTitle = document.getElementById('codes-modal-title').textContent;
+        let html = `<div class="print-header"><h2>${activityTitle}</h2></div>`;
+        html += '<div class="qr-grid">';
+        
+        qrElements.forEach((qrDiv, index) => {
+            const qrImg = qrDiv.querySelector('img') || qrDiv.querySelector('canvas');
+            const code = codes[index] ? codes[index].textContent : '';
+            
+            if (qrImg) {
+                const imgSrc = qrImg.tagName === 'CANVAS' ? qrImg.toDataURL() : qrImg.src;
+                html += `
+                    <div class="qr-item">
+                        <img src="${imgSrc}" alt="QR Code">
+                        <div class="qr-code-text">${code}</div>
+                    </div>
+                `;
+            }
+        });
+        html += '</div>';
+        
+        printDiv.innerHTML = html;
+        document.body.appendChild(printDiv);
+        
+        // พิมพ์
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    }
 });
 </script>
 <style>
+.print-only-layout {
+    display: none;
+}
+
 @media print {
-    /* ซ่อนปุ่มดาวน์โหลดและปุ่มพิมพ์ เฉพาะใน codes-modal */
-    #codes-modal #download-codes-excel,
-    #codes-modal #print-codes-table {
-        display: none !important;
-    }
-    /* ซ่อนคอลัมน์คัดลอก */
-    .print-hide, .print-hide * {
-        display: none !important;
-    }
-    /* พิมพ์เฉพาะ codes-modal */
+    /* ซ่อนทุกอย่างยกเว้น print layout */
     body * {
         visibility: hidden !important;
     }
-    #codes-modal, #codes-modal * {
+    
+    .print-only-layout, .print-only-layout * {
         visibility: visible !important;
-        background: white !important;
-        color: black !important;
+        display: block !important;
     }
-    #codes-modal {
+    
+    .print-only-layout {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
-        /* width: 100vw !important;
-        height: 100vh !important; */
-        z-index: 99999 !important;
-        box-shadow: none !important;
+        width: 100% !important;
+        height: 100% !important;
+        padding: 10mm !important;
         margin: 0 !important;
-        padding: 0 !important;
+        background: white !important;
+        display: block !important;
+    }
+    
+    .print-header {
+        text-align: center !important;
+        margin-bottom: 10mm !important;
+    }
+    
+    .print-header h2 {
+        font-size: 18pt !important;
+        font-weight: bold !important;
+        color: black !important;
+        margin: 0 !important;
+    }
+    
+    .qr-grid {
+        display: grid !important;
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 3mm !important;
+        width: 100% !important;
+    }
+    
+    .qr-item {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        page-break-inside: avoid !important;
+        padding: 2mm !important;
+        border: 1px solid #ccc !important;
+        background: white !important;
+    }
+    
+    .qr-item img {
+        width: 25mm !important;
+        height: 25mm !important;
+        max-width: 25mm !important;
+        max-height: 25mm !important;
+        margin-bottom: 1mm !important;
+    }
+    
+    .qr-code-text {
+        font-size: 8pt !important;
+        font-family: monospace !important;
+        color: black !important;
+        word-break: break-all !important;
+        margin-top: 1mm !important;
+        line-height: 1.1 !important;
+    }
+    
+    /* ซ่อน modal เดิม */
+    #codes-modal {
+        display: none !important;
+    }
+    
+    /* ลดระยะขอบหน้ากระดาษ */
+    @page {
+        margin: 8mm;
+        size: A4;
     }
 }
 </style>
