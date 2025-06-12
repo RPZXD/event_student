@@ -175,6 +175,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['activity_id'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['activity_id'])) {
     $activity_id = intval($_GET['activity_id']);
+    
+    // Handle request for all codes (for Excel/Print functionality)
     if (isset($_GET['all_codes'])) {
         $sql = "SELECT code, is_used FROM activity_unique_codes WHERE activity_id = ? ORDER BY id ASC";
         $stmt = $pdo->prepare($sql);

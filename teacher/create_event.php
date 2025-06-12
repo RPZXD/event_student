@@ -496,139 +496,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                         };
                     });
-
-                    // Bind ปุ่มดูโค้ดทั้งหมด
-                    let lastCodesExportData = [];
                     document.querySelectorAll('.show-codes-btn').forEach(btn => {
                         btn.onclick = function() {
-                            const codesModal = document.getElementById('codes-modal');
-                            const codesTableBody = document.getElementById('codes-table-body');
-                            const codesModalTitle = document.getElementById('codes-modal-title');
-                            codesModalTitle.textContent = 'กิจกรรม: ' + btn.dataset.title;
-                            codesTableBody.innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
-                            // ดึงโค้ดทั้งหมดจาก backend
-                            fetch('../controllers/EventController.php?activity_id=' + btn.dataset.id + '&all_codes=1')
-                                .then(res => res.json())
-                                .then(res => {
-                                    if (Array.isArray(res.codes) && res.codes.length > 0) {
-                                        codesTableBody.innerHTML = '';
-                                        lastCodesExportData = []; // reset
-                                        res.codes.forEach((row, idx) => {
-                                            // QR URL สำหรับแต่ละโค้ด
-                                            const qrUrl = 'https://eventstd.phichai.ac.th/checkin.php?code=' + encodeURIComponent(row.code);
-                                            codesTableBody.innerHTML += `
-                                                <tr>
-                                                    <td class="border px-2 py-1 text-center">${idx + 1}</td>
-                                                    <td class="border px-2 py-1 font-mono">${row.code}</td>
-                                                    <td class="border px-2 py-1"><div id="qr-${row.code}" style="display:inline-block;"></div></td>
-                                                    <td class="border px-2 py-1 text-center">${row.is_used == 1 ? '<span class="text-red-500">ใช้แล้ว</span>' : '<span class="text-green-600">ยังไม่ใช้</span>'}</td>
-                                                    <td class="border px-2 py-1 text-center print-hide">
-                                                        <button class="copy-code-btn bg-blue-500 hover:bg-blue-700 text-white px-2 py-1 rounded" data-code="${row.code}">คัดลอก</button>
-                                                    </td>
-                                                </tr>
-                                            `;
-                                            setTimeout(() => {
-                                                new QRCode(document.getElementById('qr-' + row.code), {
-                                                    text: qrUrl,
-                                                    width: 96,
-                                                    height: 96
-                                                });
-                                            }, 0);
-                                            // สำหรับ export
-                                            lastCodesExportData.push({
-                                                no: idx + 1,
-                                                code: row.code,
-                                                status: row.is_used == 1 ? 'ใช้แล้ว' : 'ยังไม่ใช้'
-                                            });
-                                        });
-                                    } else {
-                                        codesTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">ไม่พบโค้ด</td></tr>';
-                                        lastCodesExportData = [];
-                                    }
-                                });
-                            codesModal.classList.remove('hidden');
+                            // สร้าง URL สำหรับไปยัง qr_code_generate.php โดยส่ง activity_id กับ title ไปด้วย (ถ้าต้องการ)
+                            const params = new URLSearchParams({
+                                activity_id: btn.dataset.id,
+                                title: btn.dataset.title // เอาไว้ใช้ในหน้า qr_code_generate.php (ถ้าจำเป็น)
+                            });
+                            // redirect ไปหน้า qr_code_generate.php
+                            window.location.href = 'qr_code_generate.php?' + params.toString();
                         };
                     });
-                    document.getElementById('close-codes-modal').onclick = function() {
-                        document.getElementById('codes-modal').classList.add('hidden');
-                    };
-                    // คัดลอกโค้ด
-                    document.body.addEventListener('click', function(e) {
-                        if (e.target.classList.contains('copy-code-btn')) {
-                            const code = e.target.dataset.code;
-                            navigator.clipboard.writeText(code);
-                            e.target.textContent = 'คัดลอกแล้ว!';
-                            setTimeout(() => { e.target.textContent = 'คัดลอก'; }, 1000);
-                        }
-                    });
 
-                    // ปุ่มดาวน์โหลด Excel
-                    document.getElementById('download-codes-excel').onclick = function () {
-                        if (!lastCodesExportData || lastCodesExportData.length === 0) {
-                            Swal.fire('ไม่มีข้อมูล', 'ไม่พบโค้ดสำหรับดาวน์โหลด', 'warning');
-                            return;
-                        }
 
-                        // สร้างข้อมูลในรูปแบบ 5 โค้ดต่อแถว
-                        const codesPerRow = 5;
-                        const worksheetData = [];
-                        
-                        // เพิ่มหัวข้อ
-                        const activityTitle = document.getElementById('codes-modal-title').textContent;
-                        worksheetData.push([activityTitle]);
-                        worksheetData.push([]); // บรรทัดว่าง
-                        
-                        // จัดเรียงโค้ดเป็นแถวๆ
-                        for (let i = 0; i < lastCodesExportData.length; i += codesPerRow) {
-                            const row = [];
-                            for (let j = 0; j < codesPerRow; j++) {
-                                if (i + j < lastCodesExportData.length) {
-                                    row.push(lastCodesExportData[i + j].code);
-                                } else {
-                                    row.push(''); // เซลล์ว่างถ้าไม่มีโค้ด
-                                }
-                            }
-                            worksheetData.push(row);
-                        }
-
-                        // สร้าง Worksheet และ Workbook
-                        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-                        
-                        // ปรับขนาดคอลัมน์
-                        const colWidths = [];
-                        for (let i = 0; i < codesPerRow; i++) {
-                            colWidths.push({ wch: 15 }); // ความกว้าง 15 ตัวอักษร
-                        }
-                        worksheet['!cols'] = colWidths;
-                        
-                        // จัดกึ่งกลางหัวข้อ
-                        if (worksheet['A1']) {
-                            worksheet['A1'].s = {
-                                alignment: { horizontal: 'center' },
-                                font: { bold: true, sz: 14 }
-                            };
-                        }
-                        
-                        // รวมเซลล์หัวข้อ
-                        worksheet['!merges'] = [
-                            { s: { r: 0, c: 0 }, e: { r: 0, c: codesPerRow - 1 } }
-                        ];
-
-                        const workbook = XLSX.utils.book_new();
-                        XLSX.utils.book_append_sheet(workbook, worksheet, 'โค้ดกิจกรรม');
-
-                        // สร้างไฟล์ .xlsx
-                        XLSX.writeFile(workbook, 'activity_codes.xlsx');
-                    };
-
-                    // ปุ่มพิมพ์ตาราง
-                    const printBtn = document.getElementById('print-codes-table');
-                    if (printBtn) {
-                        printBtn.onclick = function() {
-                            // สร้างหน้าพิมพ์พิเศษสำหรับ QR codes
-                            createPrintLayout();
-                        };
-                    }
                 }
 
                 // สร้าง DataTable ใหม่หลังเติมข้อมูลเสร็จ
