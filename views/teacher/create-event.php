@@ -334,7 +334,7 @@ function loadEvents() {
                                 <span class="font-semibold text-gray-900 dark:text-white">🎯 ${ev.title}</span>
                                 <span class="block text-xs text-gray-500 dark:text-gray-400">${ev.category || '-'}</span>
                             </td>
-                            <td class="py-3 px-4 text-center text-gray-600 dark:text-gray-400">${thaiDate}</td>
+                            <td class="py-3 px-4 text-center text-gray-600 dark:text-gray-400" data-order="${ev.event_date}">${thaiDate}</td>
                             <td class="py-3 px-4 text-center text-gray-600 dark:text-gray-400">${ev.hours} ชม.</td>
                             <td class="py-3 px-4 text-center">
                                 <span class="text-gray-600 dark:text-gray-400">${max > 0 ? current + '/' + max : 'ไม่จำกัด'}</span>
