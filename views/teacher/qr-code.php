@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => window.print(), 100);
     });
 
-    // Print all - Load images in batches and wait for all to complete
+    // Print all - Load images and convert to base64 data URLs for reliable printing
     document.getElementById('print-all-qrcodes').addEventListener('click', async function() {
         const btn = this;
         btn.disabled = true;
@@ -251,38 +251,106 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateProgressTitle('กำลังโหลด QR Codes...');
                 
                 const totalCodes = result.codes.length;
-                const batchSize = 30; // Load 30 images at a time to avoid overwhelming the server
+                const batchSize = 20; // Reduced batch size for more stable loading
                 const imageData = [];
+                let loadedCount = 0;
                 
-                // Load images in batches
+                // Function to convert image to base64 data URL
+                const imageToBase64 = (img) => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || 150;
+                    canvas.height = img.naturalHeight || 150;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    return canvas.toDataURL('image/png');
+                };
+                
+                // Load images in batches and convert to base64
                 for (let batchStart = 0; batchStart < totalCodes; batchStart += batchSize) {
                     const batchEnd = Math.min(batchStart + batchSize, totalCodes);
                     const batchCodes = result.codes.slice(batchStart, batchEnd);
                     
                     // Create promises for this batch
-                    const batchPromises = batchCodes.map(c => {
+                    const batchPromises = batchCodes.map((c, idx) => {
                         return new Promise((resolve) => {
                             const img = new Image();
                             img.crossOrigin = 'anonymous';
                             
+                            const loadTimeout = setTimeout(() => {
+                                // Timeout fallback - use URL directly
+                                imageData.push({ 
+                                    code: c.code, 
+                                    src: qrApiBase + encodeURIComponent(baseUrl + c.code), 
+                                    index: batchStart + idx 
+                                });
+                                loadedCount++;
+                                resolve();
+                            }, 8000); // 8 second timeout per image
+                            
                             img.onload = () => {
-                                imageData.push({ code: c.code, src: img.src, loaded: true });
+                                clearTimeout(loadTimeout);
+                                try {
+                                    const base64 = imageToBase64(img);
+                                    imageData.push({ code: c.code, src: base64, index: batchStart + idx });
+                                } catch (e) {
+                                    // Fallback to URL if canvas fails
+                                    imageData.push({ 
+                                        code: c.code, 
+                                        src: qrApiBase + encodeURIComponent(baseUrl + c.code), 
+                                        index: batchStart + idx 
+                                    });
+                                }
+                                loadedCount++;
                                 resolve();
                             };
                             
                             img.onerror = () => {
-                                // Retry once
+                                clearTimeout(loadTimeout);
+                                // Retry with different approach
                                 const retryImg = new Image();
                                 retryImg.crossOrigin = 'anonymous';
+                                
+                                const retryTimeout = setTimeout(() => {
+                                    imageData.push({ 
+                                        code: c.code, 
+                                        src: qrApiBase + encodeURIComponent(baseUrl + c.code), 
+                                        index: batchStart + idx 
+                                    });
+                                    loadedCount++;
+                                    resolve();
+                                }, 5000);
+                                
                                 retryImg.onload = () => {
-                                    imageData.push({ code: c.code, src: retryImg.src, loaded: true });
+                                    clearTimeout(retryTimeout);
+                                    try {
+                                        const base64 = imageToBase64(retryImg);
+                                        imageData.push({ code: c.code, src: base64, index: batchStart + idx });
+                                    } catch (e) {
+                                        imageData.push({ 
+                                            code: c.code, 
+                                            src: qrApiBase + encodeURIComponent(baseUrl + c.code), 
+                                            index: batchStart + idx 
+                                        });
+                                    }
+                                    loadedCount++;
                                     resolve();
                                 };
+                                
                                 retryImg.onerror = () => {
-                                    imageData.push({ code: c.code, src: qrApiBase + encodeURIComponent(baseUrl + c.code), loaded: false });
+                                    clearTimeout(retryTimeout);
+                                    imageData.push({ 
+                                        code: c.code, 
+                                        src: qrApiBase + encodeURIComponent(baseUrl + c.code), 
+                                        index: batchStart + idx 
+                                    });
+                                    loadedCount++;
                                     resolve();
                                 };
-                                retryImg.src = qrApiBase + encodeURIComponent(baseUrl + c.code);
+                                
+                                // Try alternative QR API as retry
+                                retryImg.src = `https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(baseUrl + c.code)}`;
                             };
                             
                             img.src = qrApiBase + encodeURIComponent(baseUrl + c.code);
@@ -293,22 +361,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     await Promise.all(batchPromises);
                     
                     // Update progress
-                    const progress = Math.min(95, (batchEnd / totalCodes) * 95);
+                    const progress = Math.min(90, (loadedCount / totalCodes) * 90);
                     updateProgress(progress);
+                    updateProgressTitle(`กำลังโหลด QR Codes... (${loadedCount}/${totalCodes})`);
+                    
+                    // Small delay between batches to avoid overwhelming
+                    await new Promise(r => setTimeout(r, 100));
                 }
                 
                 updateProgressTitle('กำลังเตรียมหน้าพิมพ์...');
-                updateProgress(98);
+                updateProgress(95);
                 
                 // Sort imageData to match original order
-                const codeOrder = result.codes.map(c => c.code);
-                imageData.sort((a, b) => codeOrder.indexOf(a.code) - codeOrder.indexOf(b.code));
+                imageData.sort((a, b) => a.index - b.index);
                 
-                // Build print HTML
+                // Build print HTML with inline base64 images
                 let html = `<div class="print-header"><h2>${activityTitle} - ทั้งหมด (${totalCodes} รายการ)</h2></div><div class="qr-grid">`;
                 
                 imageData.forEach(item => {
-                    html += `<div class="qr-item"><img src="${item.src}"><div class="qr-code-text">${item.code}</div></div>`;
+                    html += `<div class="qr-item"><img src="${item.src}" style="width:25mm;height:25mm;"><div class="qr-code-text">${item.code}</div></div>`;
                 });
                 
                 html += '</div>';
@@ -316,11 +387,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 updateProgress(100);
                 
-                // Small delay to ensure DOM is ready
-                await new Promise(r => setTimeout(r, 300));
+                // Wait for images to be ready in DOM
+                await new Promise(r => setTimeout(r, 500));
                 
                 hideProgress();
-                window.print();
+                
+                // Print with slight delay for browser to render
+                setTimeout(() => {
+                    window.print();
+                }, 200);
             }
         } catch (e) {
             hideProgress();
